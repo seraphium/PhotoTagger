@@ -168,7 +168,11 @@ extension ViewController {
             
             self.downloadTags(firstFileId) {
               tags in
-              completion(tags: tags, colors: [PhotoColor]())
+              self.downloadColors(firstFileId) {
+                colors in
+                completion(tags: tags, colors: colors)
+
+              }
             }
             
           }
@@ -217,6 +221,49 @@ extension ViewController {
     }
   }
 
+  func downloadColors(contentId: String, completion: ([PhotoColor]) -> Void) {
+    Alamofire.request(.GET,
+      "http://api.imagga.com/v1/colors",
+      parameters: ["content": contentId, "extract_object_colors" : NSNumber(int: 0)],
+      headers: ["Authorization" : "Basic YWNjXzhlYzE3MDkwNTE3NWU3Yjo0NzdkYzQ3MGZiYTZjYzVlYjhkNzMxM2U4MmJkOGNkYQ=="])
+      .responseJSON() {response in
+        guard response.result.isSuccess else {
+          print ("error while fetching colors: \(response.result.error)")
+          completion([PhotoColor]())
+          return
+        }
+        
+        guard let responseJSON = response.result.value as? [String: AnyObject],
+          result = responseJSON["results"] as? [AnyObject],
+        firstResult = result.first as? [String: AnyObject],
+          info = firstResult["info"] as? [String: AnyObject],
+          imageColors = info["image_colors"] as? [[String: AnyObject]]  else {
+            print("invalid color information received from server")
+            completion([PhotoColor]())
+            return
+        }
+        
+        let photoColors = imageColors.flatMap({(dict) -> PhotoColor? in
+          
+          guard let r = dict["r"] as? String,
+                let g = dict["g"] as? String,
+                let b = dict["b"] as? String,
+            closestPaletteColor = dict["closest_palette_color"] as? String else {
+                  print("invalid color info received")
+                  return nil
+            }
+          return PhotoColor(red: Int(r), green: Int(g), blue: Int(b), colorName: closestPaletteColor)
+          
+          })
+          
+        
+        
+        completion(photoColors)
+        
+    }
+  }
+
+  
 
 
 }
