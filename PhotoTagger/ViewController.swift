@@ -130,9 +130,7 @@ extension ViewController {
     }
     
     //uploading logic
-    Alamofire.upload(.POST,
-                     "http://api.imagga.com/v1/content",
-                     headers: ["Authorization" : "Basic YWNjXzhlYzE3MDkwNTE3NWU3Yjo0NzdkYzQ3MGZiYTZjYzVlYjhkNzMxM2U4MmJkOGNkYQ=="],
+    Alamofire.upload(ImaggaRouter.Content.URLRequest,
                      multipartFormData:  { multipartFormData in
                       multipartFormData.appendBodyPart(data: imageData, name:"imageFile", fileName:"image.jpg", mimeType: "image/jpeg")
       }, encodingCompletion : { encodingResult in
@@ -190,10 +188,7 @@ extension ViewController {
   
   
   func downloadTags(contentId: String, completion: ([String]) -> Void ) {
-    Alamofire.request(.GET,
-      "http://api.imagga.com/v1/tagging",
-      parameters: ["content": contentId],
-      headers: ["Authorization" : "Basic YWNjXzhlYzE3MDkwNTE3NWU3Yjo0NzdkYzQ3MGZiYTZjYzVlYjhkNzMxM2U4MmJkOGNkYQ=="])
+    Alamofire.request(ImaggaRouter.Tags(contentId).URLRequest)
       .responseJSON() {response in
         guard response.result.isSuccess else {
           print ("error while fetching tags: \(response.result.error)")
@@ -222,10 +217,7 @@ extension ViewController {
   }
 
   func downloadColors(contentId: String, completion: ([PhotoColor]) -> Void) {
-    Alamofire.request(.GET,
-      "http://api.imagga.com/v1/colors",
-      parameters: ["content": contentId, "extract_object_colors" : NSNumber(int: 0)],
-      headers: ["Authorization" : "Basic YWNjXzhlYzE3MDkwNTE3NWU3Yjo0NzdkYzQ3MGZiYTZjYzVlYjhkNzMxM2U4MmJkOGNkYQ=="])
+    Alamofire.request(ImaggaRouter.Colors(contentId).URLRequest)
       .responseJSON() {response in
         guard response.result.isSuccess else {
           print ("error while fetching colors: \(response.result.error)")
